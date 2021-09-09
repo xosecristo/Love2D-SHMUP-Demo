@@ -1,10 +1,4 @@
-debug = true
-
-function love.load(arg)
-	anim8 = require "lib/anim8"
-	love.graphics.setDefaultFilter("nearest","nearest")
-
-	--default speed value--
+--default speed value--
 	speed = 320
 
 	player = {
@@ -14,39 +8,61 @@ function love.load(arg)
 		focus = (speed / 2),
 		sprite = love.graphics.newImage("sprites/ship.png")
 	}
-	
-	player.grid = anim8.newGrid( 50, 75, player.sprite:getWidth(), player.sprite:getHeight())
-	
-	background = love.graphics.newImage("sprites/bg.png")
-	
-	
 
-	player.animations = {
-		still = anim8.newAnimation(player.grid('1-3',1), 0.5),
-		left  = anim8.newAnimation(player.grid('1-3',2), 0.1),
-		right = anim8.newAnimation(player.grid('1-3',3), 0.1)		
-	}
-
-	player.currentAnimation = player.animations.still
-
+	background = { sprite = love.graphics.newImage("sprites/bg-sprite.png")}
 
 	canShoot = true
 
+	--Bullet Timer
 	canShootTimerMax = 0.2
 	canShootTimer = canShootTimerMax
+	--Enemy timer
+	createEnemyTimerMax = 0.4
+	createEnemyTimer = createEnemyTimerMax
 
+	--img
 	bulletImg = nil
+	enemyImg = nil
 
+	--storage
 	bullets = {}
+	enemy = {}
 
-	bulletImg  = love.graphics.newImage("sprites/bullet.png")
+function love.load(arg)
 
+	anim8 = require "lib/anim8"
+	love.graphics.setDefaultFilter("nearest","nearest")
+
+	player.grid = anim8.newGrid( 50, 75, player.sprite:getWidth(), player.sprite:getHeight())
+	
+	player.animations = {
+		still = anim8.newAnimation(player.grid('1-3', 1), 0.5),
+		left  = anim8.newAnimation(player.grid('1-3', 2), 0.1),
+		right = anim8.newAnimation(player.grid('1-3', 3), 0.1)		
+	}
+
+	background.grid = anim8.newGrid(450, 800, background.sprite:getWidth(), background.sprite:getHeight())
+	
+	background.animations = {
+		still = anim8.newAnimation(background.grid('1-6', 1), 0.1)
+	}
+
+	--background = love.graphics.newImage("sprites/bg.png")
+	bulletImg = love.graphics.newImage("sprites/bullet.png")
+	enemyImg  = love.graphics.newImage("sprites/enemy.png")
+
+---
 end
 
 function love.update(dt)
 
+	player.currentAnimation = player.animations.still
+	background.currentAnimation = background.animations.still
+
 	player.currentAnimation:update(dt)
-	isMoving = false
+	background.currentAnimation:update(dt)
+	
+	isMoving = false	
 
 	--goodbye monkee
 	if love.keyboard.isDown("escape") then
@@ -81,7 +97,7 @@ function love.update(dt)
 	---------------------
 	--VERTICAL MOVEMENT--
 	---------------------
-	if love.keyboard.isDown("w","up") then
+	if love.keyboard.isDown("w", "up") then
 		
 		if player.y > 0 then
 			--movement related
@@ -102,57 +118,67 @@ function love.update(dt)
 		end	
 
 	end
+
+	if isMoving == false then
+		player.currentAnimation = player.animations.still
+	end
 	
 	----------------------------
 	--SHOOTINGSHOOTINGSHOOTING--
 	----------------------------
+	canShootTimer = canShootTimer - (3.3 * dt)
 
-	canShootTimer = canShootTimer - (1 * dt)
 	if canShootTimer < 0 then
 		canShoot = true
 	end
 
 	if love.keyboard.isDown("j") then
-
-		--movemente related
+		--movemente related	
 		player.speed = player.focus
-		--shooting related
 		if canShoot then
-			newBullet = { x = player.x + (player.sprite:getWidth()/5), y = player.y, img = bulletImg }
+			--shooting related
+			newBullet = { 
+				x = player.x + (player.sprite:getWidth()/5), 
+				y = player.y, 
+				img = bulletImg 
+			}
 			table.insert(bullets, newBullet)
 			canShoot = false
 			canShootTimer = canShootTimerMax
 		end
-
 	else
-		
 		--movement related
 		player.speed = speed
-
 	end
 
 	for i, bullet in ipairs(bullets) do
-		
-		bullet.y = bullet.y - (250 * dt)
+		--bullet speed
+		bullet.y = bullet.y - (500 * dt)
 	  --byebye monkee
   	if bullet.y < -10 then 
 			table.remove(bullets, i)
 		end
-		
 	end
 
-	if isMoving == false then
-		player.currentAnimation = player.animations.still
-	end
+	---------------------------
+	--ENEMY----ENEMY----ENEMY--
+	---------------------------
 
+	--pass
+
+---
 end
 
 function love.draw(dt)
-	love.graphics.draw(background, 0 , 0, nill)
+	--background
+	background.currentAnimation:draw(background.sprite, nil, 1)
+
+	--player
 	player.currentAnimation:draw(player.sprite, player.x, player.y, nil, 1.5)
 
-for i, bullet in ipairs(bullets) do
-  love.graphics.draw(bullet.img, bullet.x, bullet.y)
-end
-
+	--bullet	
+	for i, bullet in ipairs(bullets) do
+  	love.graphics.draw(bullet.img, bullet.x, bullet.y)
+	end
+---
 end 
