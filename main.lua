@@ -7,17 +7,20 @@
 		speed = speed,
 		focus = (speed / 2),
 		sprite = love.graphics.newImage("sprites/ship.png")
-	}
+	}	
 
 	background = { sprite = love.graphics.newImage("sprites/bg-sprite.png")}
 
+	score = 0
+	isAlive = true
 	canShoot = true
 
 	--Bullet Timer
 	canShootTimerMax = 0.2
 	canShootTimer = canShootTimerMax
+	
 	--Enemy timer
-	createEnemyTimerMax = 0.4
+	createEnemyTimerMax = 0.1
 	createEnemyTimer = createEnemyTimerMax
 
 	--img
@@ -26,7 +29,19 @@
 
 	--storage
 	bullets = {}
-	enemy = {}
+	enemies = {}
+
+-- Collision detection taken function from http://love2d.org/wiki/BoundingBox.lua
+-- Returns true if two boxes overlap, false if they don't
+-- x1,y1 are the left-top coords of the first box, while w1,h1 are its width and height
+-- x2,y2,w2 & h2 are the same, but for the second box
+function CheckCollision(x1,y1,w1,h1, x2,y2,w2,h2)
+  return x1 < x2+w2 and
+         x2 < x1+w1 and
+         y1 < y2+h2 and
+         y2 < y1+h1
+---
+end
 
 function love.load(arg)
 
@@ -165,9 +180,83 @@ function love.update(dt)
 	---------------------------
 	--ENEMY----ENEMY----ENEMY--
 	---------------------------
+	createEnemyTimer = createEnemyTimer - (1 * dt)
 
-	--pass
+	if createEnemyTimer < 0 then
+		createEnemyTimer = createEnemyTimerMax
 
+		--create an enemy
+		randomNumber = math.random(10, love.graphics.getWidth() - 10)
+		newEnemy = { 
+			x = randomNumber, 
+			y = -10,
+			img = enemyImg
+		}
+		table.insert(enemies, newEnemy)
+	end	
+	
+	for i, enemy in ipairs(enemies) do
+
+		--enemy speed
+		enemy.y = enemy.y + (400 * dt)
+
+		--goodbye monkey, goodbye
+		if enemy.y > 850 then
+			table.remove(enemies, i)
+		end
+	end
+
+	-------------------------------
+	--COLLISIONCOLLISIONCOLLISION--
+	-------------------------------
+
+	for i, enemy in ipairs(enemies) do
+		
+		--Colisión entre bullets y enemigo.
+		for j, bullet in ipairs(bullets) do
+			if CheckCollision(enemy.x, enemy.y, enemyImg:getWidth(), enemyImg:getHeight(), bullet.x, bullet.y, bulletImg:getWidth(), bulletImg:getHeight()) then
+				table.remove(bullets, j)
+				table.remove(enemies, i)
+				
+				--Todos los shoo'em up tienen muchos números, ¿por qué este no?
+				score = score + 10000000
+			end
+		end
+
+		--Colisión entre enemigo y player.
+		if CheckCollision(
+			enemy.x, enemy.y, enemyImg:getWidth(), enemyImg:getHeight(), 
+			player.x, player.y, player.sprite:getWidth(), player.sprite:getHeight()) 
+		then
+			
+			--goodbye monkee
+			table.remove(enemies, i)
+
+			--Aquí podría agregarle la animación de "morirse". 
+			isAlive = false
+		end
+	end
+
+	-----------
+	--RESTART--
+	-----------
+	-- if not isAlive and love.keyboard.isDown('r') then
+	-- 	-- remove all our bullets and enemies from screen
+	-- 	bullets = {}
+	-- 	enemies = {}
+
+	-- 	-- reset timers
+	-- 	canShootTimer = canShootTimerMax
+	-- 	createEnemyTimer = createEnemyTimerMax
+
+	-- 	-- move player back to default position
+	-- 	player.x = 50
+	-- 	player.y = 710
+
+	-- 	-- reset our game state
+	-- 	score = 0
+	-- 	isAlive = true
+	-- end
 ---
 end
 
@@ -178,9 +267,23 @@ function love.draw(dt)
 	--player
 	player.currentAnimation:draw(player.sprite, player.x, player.y, nil, 1.5)
 
+	-- if isAlive then
+	-- 	player.currentAnimation:draw(player.sprite, player.x, player.y, nil, 1.5)
+	-- else
+	-- 	love.graphics.print("UUUOOOOOOOOHH", love.graphics:getWidth()/2-50, love.graphics:getHeight()/2-10)
+	-- end
+
 	--bullet	
 	for i, bullet in ipairs(bullets) do
   	love.graphics.draw(bullet.img, bullet.x, bullet.y)
 	end
+
+	--enemies
+	for i, enemy in ipairs(enemies) do
+		love.graphics.draw(enemy.img, enemy.x, enemy.y, nil, 2)
+	end
+
 ---
-end 
+end
+
+ 
