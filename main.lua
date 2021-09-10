@@ -33,7 +33,7 @@ function love.load(arg)
 	anim8 = require "lib/anim8"
 	love.graphics.setDefaultFilter("nearest","nearest")
 
-	player.grid = anim8.newGrid( 50, 75, player.sprite:getWidth(), player.sprite:getHeight())
+	player.grid = anim8.newGrid( 50, 75	, player.sprite:getWidth(), player.sprite:getHeight())
 	
 	player.animations = {
 		still = anim8.newAnimation(player.grid('1-3', 1), 0.5),
@@ -51,13 +51,15 @@ function love.load(arg)
 	bulletImg = love.graphics.newImage("sprites/bullet.png")
 	enemyImg  = love.graphics.newImage("sprites/enemy.png")
 
+
+	player.currentAnimation = player.animations.still
+	background.currentAnimation = background.animations.still
+
 ---
 end
 
 function love.update(dt)
 
-	player.currentAnimation = player.animations.still
-	background.currentAnimation = background.animations.still
 
 	player.currentAnimation:update(dt)
 	background.currentAnimation:update(dt)
@@ -138,8 +140,8 @@ function love.update(dt)
 		if canShoot then
 			--shooting related
 			newBullet = { 
-				x = player.x + (player.sprite:getWidth()/5), 
-				y = player.y, 
+				x = player.x + (player.sprite:getWidth()/5.5), 
+				y = player.y - 15, 
 				img = bulletImg 
 			}
 			table.insert(bullets, newBullet)
