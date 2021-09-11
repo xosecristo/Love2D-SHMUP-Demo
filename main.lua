@@ -6,6 +6,7 @@
 		y = 600,
 		speed = speed,
 		focus = (speed / 2),
+		hitbox = love.graphics.newImage("sprites/player.png"),
 		sprite = love.graphics.newImage("sprites/ship.png")
 	}	
 
@@ -151,7 +152,8 @@ function love.update(dt)
 
 	if love.keyboard.isDown("j") then
 		--movemente related	
-		player.speed = player.focus
+		--player.speed = player.focus
+
 		if canShoot then
 			--shooting related
 			newBullet = { 
@@ -167,6 +169,7 @@ function love.update(dt)
 		--movement related
 		player.speed = speed
 	end
+
 
 	for i, bullet in ipairs(bullets) do
 		--bullet speed
@@ -212,7 +215,9 @@ function love.update(dt)
 
 	for i, enemy in ipairs(enemies) do
 		
-		--Colisión entre bullets y enemigo.
+		---------------------------
+		--COLLISION(BULLET/ENEMY)--
+		---------------------------
 		for j, bullet in ipairs(bullets) do
 			if CheckCollision(enemy.x, enemy.y, enemyImg:getWidth(), enemyImg:getHeight(), bullet.x, bullet.y, bulletImg:getWidth(), bulletImg:getHeight()) then
 				table.remove(bullets, j)
@@ -223,12 +228,15 @@ function love.update(dt)
 			end
 		end
 
-		--Colisión entre enemigo y player.
+		---------------------------
+		--COLLISION(PLAYER&ENEMY)--
+		---------------------------
 		if CheckCollision(
-			enemy.x, enemy.y, enemyImg:getWidth(), enemyImg:getHeight(), 
-			player.x, player.y, player.sprite:getWidth(), player.sprite:getHeight()) 
+			-- Enemy hitbox colission
+			enemy.x, enemy.y, enemyImg:getWidth()*2, enemyImg:getHeight()*2, 
+			-- Player Hitbox colission
+			player.x, player.y, player.hitbox:getWidth()*1.5, player.hitbox:getHeight()*1.5) 
 		then
-			
 			--goodbye monkee
 			table.remove(enemies, i)
 
@@ -265,6 +273,7 @@ function love.draw(dt)
 	background.currentAnimation:draw(background.sprite, nil, 1)
 
 	--player
+	--love.graphics.draw(player.playerImg, player.x, player.y, nil, 1.5)
 	player.currentAnimation:draw(player.sprite, player.x, player.y, nil, 1.5)
 
 	-- if isAlive then
@@ -275,7 +284,7 @@ function love.draw(dt)
 
 	--bullet	
 	for i, bullet in ipairs(bullets) do
-  	love.graphics.draw(bullet.img, bullet.x, bullet.y)
+  	love.graphics.draw(bullet.img, bullet.x, bullet.y, nil)
 	end
 
 	--enemies
